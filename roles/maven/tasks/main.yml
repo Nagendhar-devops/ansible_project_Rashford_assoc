@@ -1,0 +1,20 @@
+---
+- name: Install python-software-properties
+  apt:
+    name: python-software-properties
+    update_cache: yes
+    state: present
+
+- name: Add WebUpd8Team PPA
+  apt-key:
+    url: https://keyserver.ubuntu.com/pfs/pool/main/w/webupd8/ppa.gpg
+    state: present
+
+- name: Update package lists
+  apt:
+    update_cache: yes
+
+- name: Install default JDK
+  apt:
+    name: default-jdk
+    update_cache: yes
