@@ -1,0 +1,92 @@
+- name: Install Tomcat dependencies
+  become: true
+  apt:
+    name:
+      - openjdk-11-jdk
+      - wget
+
+- name: Create Tomcat group
+  become: true
+  group:
+    name: tomcat
+    state: present
+
+- name: Create Tomcat user
+  become: true
+  user:
+    name: tomcat
+    group: tomcat
+    system: true
+    createhome: false
+
+- name: Download Tomcat tarball
+  get_url:
+    url: http://redrockdigimark.com/apachemirror/tomcat/tomcat-8/v8.5.31/bin/apache-tomcat-8.5.31.tar.gz
+    dest: /tmp/apache-tomcat-8.5.31.tar.gz
+
+- name: Extract Tomcat tarball
+  archive:
+    path: /tmp/apache-tomcat-8.5.31.tar.gz
+    dest: /opt/tomcat
+    creates: /opt/tomcat/apache-tomcat-8.5.31
+    strip_components: 1
+
+- name: Set owner and group permissions for Tomcat directory
+  file:
+    path: /opt/tomcat
+    owner: tomcat
+    group: tomcat
+    state: directory
+
+- name: Set permissions for Tomcat configuration files
+  file:
+    path: /opt/tomcat/conf
+    mode: g+r
+    state: directory
+
+- name: Set execute permissions for Tomcat configuration scripts
+  file:
+    path: /opt/tomcat/conf
+    mode: g+x
+    state: directory
+
+- name: Set owner and group permissions for Tomcat directories
+  file:
+    path: /opt/tomcat/webapps
+    owner: tomcat
+    group: tomcat
+    state: directory
+  file:
+    path: /opt/tomcat/work
+    owner: tomcat
+    group: tomcat
+    state: directory
+  file:
+    path: /opt/tomcat/temp
+    owner: tomcat
+    group: tomcat
+    state: directory
+  file:
+    path: /opt/tomcat/logs
+    owner: tomcat
+    group: tomcat
+    state: directory
+
+- name: Create Tomcat systemd service file
+  template:
+    src: templates/tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Reload systemd daemon
+  service:
+    name: systemd
+    state: reloaded
+
+- name: Start Tomcat service
+  service:
+    name: tomcat
+    state: started
+    enabled: yes
